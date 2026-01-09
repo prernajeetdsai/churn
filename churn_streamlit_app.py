@@ -31,25 +31,37 @@ st.markdown("""
         font-size: 16px;
     }
     .success-box {
-        background-color: #d4edda;
-        border: 1px solid #c3e6cb;
+        background-color: #d1ecf1;
+        border: 1px solid #0dcaf0;
         border-radius: 5px;
         padding: 15px;
         margin: 10px 0;
+        color: #000000;
     }
+    .success-box h3, .success-box p, .success-box strong {
+        color: #000000 !important;
+    }    
     .warning-box {
         background-color: #fff3cd;
-        border: 1px solid #ffeeba;
+        border: 2px solid #ffc107;
         border-radius: 5px;
         padding: 15px;
         margin: 10px 0;
+        color: #000000;
+    }
+    .warning-box h3, .warning-box p, .warning-box strong {
+        color: #000000 !important;
     }
     .danger-box {
         background-color: #f8d7da;
-        border: 1px solid #f5c6cb;
+        border: 2px solid #dc3545;
         border-radius: 5px;
         padding: 15px;
         margin: 10px 0;
+        color: #000000;
+    }
+    .danger-box h3, .danger-box p, .danger-box strong {
+        color: #000000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -956,8 +968,8 @@ else:
             def highlight_best(s):
                 if s.name in backend.model_metrics:
                     if s.name == best_model:
-                        return ['background-color: #d4edda'] * len(s)
-                return [''] * len(s)
+                        return ['background-color: #d4edda; color: #000000; font-weight: bold'] * len(s)
+                return ['color: #ffffff'] * len(s)
             
             styled_df = metrics_df.style.apply(highlight_best, axis=1)
             st.dataframe(styled_df, use_container_width=True)
@@ -1307,10 +1319,11 @@ else:
             # Report Header
             st.markdown(f"""
             <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        padding: 20px; border-radius: 10px; color: white; margin-bottom: 20px;'>
-                <h2>📊 Customer Churn Analysis Report</h2>
-                <p><strong>Generated:</strong> {result['generated_at']}</p>
-                <p><strong>Model Used:</strong> {result['prediction']['model_name']}</p>
+                        padding: 20px; border-radius: 10px; color: white; margin-bottom: 20px;'
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                <h2 style='color: white; margin: 0 0 10px 0;'>📊 Customer Churn Analysis Report</h2>
+                <p style='color: white; margin: 5px 0; opacity: 0.95;'><strong>Generated:</strong> {result['generated_at']}</p>
+                <p style='color: white; margin: 5px 0; opacity: 0.95;'><strong>Model Used:</strong> {result['prediction']['model_name']}</p>
             </div>
             """, unsafe_allow_html=True)
             
@@ -1322,14 +1335,29 @@ else:
             churn_status = "HIGH RISK - IMMEDIATE ACTION REQUIRED" if result['prediction']['churn_prediction'] == 1 else "LOW RISK - CUSTOMER STABLE"
             status_color = "danger-box" if result['prediction']['churn_prediction'] == 1 else "success-box"
             
-            st.markdown(f"""
-            <div class='{status_color}'>
-                <h3>🎯 Prediction: {churn_status}</h3>
-                <p><strong>Churn Probability:</strong> {result['prediction']['churn_probability']:.1%}</p>
-                <p><strong>Risk Level:</strong> {result['business_impact']['risk_level']}</p>
-                <p><strong>Revenue at Risk:</strong> ${result['business_impact']['revenue_loss']:,.2f}</p>
-            </div>
-            """, unsafe_allow_html=True)
+            # Better color scheme for status boxes
+            if result['prediction']['churn_prediction'] == 1:
+                status_bg = "#fff3cd"  # Light yellow
+                status_border = "#ffc107"  # Amber
+                status_text = "#000000"  # Black text
+            else:
+                status_bg = "#d1ecf1"  # Light blue
+                status_border = "#0dcaf0"  # Cyan
+                status_text = "#000000"  # Black text
+
+           st.markdown(f"""
+           <div style='background-color: {status_bg}; 
+                       border: 2px solid {status_border}; 
+                       border-radius: 5px; 
+                       padding: 15px; 
+                       margin: 10px 0;
+                       color: {status_text};'>
+               <h3 style='color: {status_text}; margin-top: 0;'>🎯 Prediction: {churn_status}</h3>
+               <p style='color: {status_text};'><strong>Churn Probability:</strong> {result['prediction']['churn_probability']:.1%}</p>
+               <p style='color: {status_text};'><strong>Risk Level:</strong> {result['business_impact']['risk_level']}</p>
+               <p style='color: {status_text};'><strong>Revenue at Risk:</strong> ${result['business_impact']['revenue_loss']:,.2f}</p>
+           </div>
+           """, unsafe_allow_html=True)
             
             st.divider()
             
