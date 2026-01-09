@@ -186,9 +186,9 @@ class ChurnPredictionBackend:
     def _configure_gemini(self) -> None:
         """Configure Gemini API for LLM insights."""
         try:
-            gemini_key = os.getenv('GEMINI_API_KEY', '')
-            if gemini_key and not gemini_key.startswith('YOUR_'):
-                genai.configure(api_key=gemini_key)
+            GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+            if GEMINI_API_KEY and not GEMINI_API_KEY.startswith('YOUR_'):
+                genai.configure(api_key=GEMINI_API_KEY)
                 logger.info("Gemini API configured successfully")
             else:
                 logger.warning("Gemini API key not configured - will use fallback insights")
