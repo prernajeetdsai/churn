@@ -991,23 +991,47 @@ class ChurnPredictionBackend:
                 )
             
             # Extract top features
+            # Extract top features
             importance = np.abs(shap_values[0])
             top_indices = np.argsort(importance)[-5:][::-1]
-            top_features = [{
-                'name': self.feature_columns[i],
-                'shap_value': float(shap_values[0][i]),
-                'feature_value': float(X_pred.iloc[0, i]),
-                'impact': 'High' if abs(shap_values[0][i]) > np.percentile(importance, 75) 
-                         else 'Medium' if abs(shap_values[0][i]) > np.percentile(importance, 50)
-                         else 'Low'
-            } for i in top_indices]
+            top_features = []
+            for i in top_indices:
+                try:
+                    # Convert feature value safely
+                    feat_val = X_pred.iloc[0, i]
+                   if isinstance(feat_val, str):
+                       # Handle string representations of numbers like '[5.4532975E-1]'
+                       feat_val = feat_val.strip('[]').replace('E-', 'e-').replace('E+', 'e+')
+                       feat_val = float(feat_val)
+                   else:
+                       feat_val = float(feat_val)
+        
+                   shap_val = float(shap_values[0][i])
+                   top_features.append({
+                       'name': self.feature_columns[i],
+                       'shap_value': shap_val,
+                       'feature_value': feat_val,
+                       'impact': 'High' if abs(shap_val) > np.percentile(importance, 75) 
+                                else 'Medium' if abs(shap_val) > np.percentile(importance, 50)
+                                else 'Low'
+                   })
+               except (ValueError, TypeError) as e:
+                   logger.warning(f"Could not convert feature {self.feature_columns[i]}: {e}")
+                   continue
             
             # Get global importance
+            # Get global importance
             top_global_indices = np.argsort(global_importance)[-5:][::-1]
-            global_features = [{
-                'name': self.feature_columns[i],
-                'importance': float(global_importance[i])
-            } for i in top_global_indices]
+            global_features = []
+            for i in top_global_indices:
+                try:
+                    global_features.append({
+                        'name': self.feature_columns[i],
+                        'importance': float(global_importance[i])
+                    })
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"Could not convert global importance for {self.feature_columns[i]}: {e}")
+                    continue
             
             logger.info(f"SHAP explanation generated for {model_name}")
             
@@ -1028,11 +1052,12 @@ class ChurnPredictionBackend:
     ) -> Tuple[np.ndarray, float, np.ndarray]:
         """Get SHAP values for tree-based models."""
         if isinstance(model, VotingClassifier):
+            # Use the first estimator from the ensemble (usually XGBoost)
             base_model = model.estimators_[0]
             explainer = shap.TreeExplainer(base_model)
         else:
             explainer = shap.TreeExplainer(model)
-        
+            
         shap_values_raw = explainer.shap_values(X_pred)
         
         # Handle different SHAP output formats
@@ -1040,53 +1065,31 @@ class ChurnPredictionBackend:
             shap_values = shap_values_raw[1] if len(shap_values_raw) > 1 else shap_values_raw[0]
         else:
             shap_values = shap_values_raw
-        
+    
         if isinstance(explainer.expected_value, np.ndarray):
             base_value = float(explainer.expected_value[1] 
-                             if len(explainer.expected_value) > 1 
-                             else explainer.expected_value[0])
+                         if len(explainer.expected_value) > 1 
+                         else explainer.expected_value[0])
         else:
             base_value = float(explainer.expected_value)
-        
         # Calculate global importance
         if self.X_train_sample is not None:
-            global_shap_raw = explainer.shap_values(self.X_train_sample)
-            if isinstance(global_shap_raw, list):
-                global_shap = global_shap_raw[1] if len(global_shap_raw) > 1 else global_shap_raw[0]
+            try:
+                global_shap_raw = explainer.shap_values(self.X_train_sample)
+                if isinstance(global_shap_raw, list):
+                    global_shap = global_shap_raw[1] if len(global_shap_raw) > 1 else global_shap_raw[0]
+                else:
+                    global_shap = global_shap_raw
+                global_importance = np.abs(global_shap).mean(axis=0)
+            except Exception as e:
+                logger.warning(f"Could not compute global importance: {e}")
+                global_importance = np.abs(shap_values[0])
             else:
-                global_shap = global_shap_raw
-            global_importance = np.abs(global_shap).mean(axis=0)
-        else:
-            global_importance = np.abs(shap_values[0])
-        
-        if len(shap_values.shape) == 1:
-            shap_values = shap_values.reshape(1, -1)
-        
-        return shap_values, base_value, global_importance
-    
-    def _get_kernel_shap(
-        self, model, X_pred, X_sample
-    ) -> Tuple[np.ndarray, float, np.ndarray]:
-        """Get SHAP values for kernel-based models."""
-        explainer = shap.KernelExplainer(
-            lambda x: model.predict_proba(
-                pd.DataFrame(x, columns=self.feature_columns)
-            )[:, 1],
-            X_sample
-        )
-        shap_values = explainer.shap_values(X_pred)
-        base_value = float(explainer.expected_value)
-        
-        if self.X_train_sample is not None:
-            global_shap = explainer.shap_values(self.X_train_sample)
-            global_importance = np.abs(global_shap).mean(axis=0)
-        else:
-            global_importance = np.abs(shap_values[0])
-        
-        if len(shap_values.shape) == 1:
-            shap_values = shap_values.reshape(1, -1)
-        
-        return shap_values, base_value, global_importance
+                global_importance = np.abs(shap_values[0])
+                
+            if len(shap_values.shape) == 1:
+                shap_values = shap_values.reshape(1, -1)
+            return shap_values, base_value, global_importance
     
     # ==================== Model Analysis ====================
     
