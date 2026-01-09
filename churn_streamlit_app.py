@@ -75,13 +75,16 @@ with st.sidebar:
     st.divider()
     
     st.subheader("📊 Configuration")
-    gemini_key = os.getenv('GEMINI_API_KEY', '')
-    if gemini_key and not gemini_key.startswith('YOUR_'):
-        st.success("✅ Gemini API Active")
-    else:
-        st.warning("⚠️ Gemini API Not Configured")
-        with st.expander("Configure Gemini API"):
-            st.info("Set GEMINI_API_KEY in .env file for AI insights")
+    try:
+        GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+        if GEMINI_API_KEY and not GEMINI_API_KEY.startswith('YOUR_'):
+            st.success("✅ Gemini API Active")
+        else:
+            st.warning("⚠️ Gemini API Not Configured")
+            with st.expander("Configure Gemini API"):
+                st.info("Set GEMINI_API_KEY in .env file for AI insights")
+    except Exception as e:
+        st.error(f"⚠️ Gemini API Error: {str(e)}")
     
     st.divider()
     
