@@ -26,7 +26,7 @@ import xgboost as xgb
 import shap
 from evidently.report import Report
 from evidently.metrics import DatasetDriftMetric
-import google.generativeai as genai
+import google.genai as genai
 import warnings
 
 warnings.filterwarnings('ignore')
