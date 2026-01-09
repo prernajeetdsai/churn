@@ -1384,12 +1384,22 @@ Continue monitoring for changes.
             fallback_insights = self._generate_fallback_insights(summary_dict)
             
             # Try Gemini API if configured
-            gemini_key = os.getenv('GEMINI_API_KEY', '')
-            if not gemini_key or gemini_key.startswith('YOUR_'):
+            # Try Gemini API if configured
+            try:
+                GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+                if not GEMINI_API_KEY or GEMINI_API_KEY.startswith('YOUR_'):
+                    return {
+                        'success': True,
+                        'insights': fallback_insights,
+                        'fallback': True
+                    }
+            except Exception as e:
+                logger.warning(f"Gemini API check failed: {e}")
                 return {
                     'success': True,
                     'insights': fallback_insights,
-                    'fallback': True
+                    'fallback': True,
+                    'error': str(e)
                 }
             
             # Prepare prompt
