@@ -1,9 +1,3 @@
-"""
-Production-Ready Customer Churn Prediction Backend
-===================================================
-Enterprise-grade ML backend with robust error handling, logging, and performance optimization.
-"""
-
 import os
 import json
 import pickle
@@ -990,8 +984,7 @@ class ChurnPredictionBackend:
                     model, X_pred, X_sample
                 )
             
-            # Extract top features
-            # Extract top features
+            # Extract top features (FIXED INDENTATION)
             importance = np.abs(shap_values[0])
             top_indices = np.argsort(importance)[-5:][::-1]
             top_features = []
@@ -999,28 +992,27 @@ class ChurnPredictionBackend:
                 try:
                     # Convert feature value safely
                     feat_val = X_pred.iloc[0, i]
-                   if isinstance(feat_val, str):
-                       # Handle string representations of numbers like '[5.4532975E-1]'
-                       feat_val = feat_val.strip('[]').replace('E-', 'e-').replace('E+', 'e+')
-                       feat_val = float(feat_val)
-                   else:
-                       feat_val = float(feat_val)
-        
-                   shap_val = float(shap_values[0][i])
-                   top_features.append({
-                       'name': self.feature_columns[i],
-                       'shap_value': shap_val,
-                       'feature_value': feat_val,
-                       'impact': 'High' if abs(shap_val) > np.percentile(importance, 75) 
-                                else 'Medium' if abs(shap_val) > np.percentile(importance, 50)
-                                else 'Low'
-                   })
-               except (ValueError, TypeError) as e:
-                   logger.warning(f"Could not convert feature {self.feature_columns[i]}: {e}")
-                   continue
+                    if isinstance(feat_val, str):
+                        # Handle string representations of numbers
+                        feat_val = feat_val.strip('[]').replace('E-', 'e-').replace('E+', 'e+')
+                        feat_val = float(feat_val)
+                    else:
+                        feat_val = float(feat_val)
+                    
+                    shap_val = float(shap_values[0][i])
+                    top_features.append({
+                        'name': self.feature_columns[i],
+                        'shap_value': shap_val,
+                        'feature_value': feat_val,
+                        'impact': 'High' if abs(shap_val) > np.percentile(importance, 75) 
+                                 else 'Medium' if abs(shap_val) > np.percentile(importance, 50)
+                                 else 'Low'
+                    })
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"Could not convert feature {self.feature_columns[i]}: {e}")
+                    continue
             
-            # Get global importance
-            # Get global importance
+            # Get global importance (FIXED INDENTATION)
             top_global_indices = np.argsort(global_importance)[-5:][::-1]
             global_features = []
             for i in top_global_indices:
@@ -1065,13 +1057,14 @@ class ChurnPredictionBackend:
             shap_values = shap_values_raw[1] if len(shap_values_raw) > 1 else shap_values_raw[0]
         else:
             shap_values = shap_values_raw
-    
+        
         if isinstance(explainer.expected_value, np.ndarray):
             base_value = float(explainer.expected_value[1] 
                          if len(explainer.expected_value) > 1 
                          else explainer.expected_value[0])
         else:
             base_value = float(explainer.expected_value)
+        
         # Calculate global importance
         if self.X_train_sample is not None:
             try:
@@ -1084,12 +1077,13 @@ class ChurnPredictionBackend:
             except Exception as e:
                 logger.warning(f"Could not compute global importance: {e}")
                 global_importance = np.abs(shap_values[0])
-            else:
-                global_importance = np.abs(shap_values[0])
-                
-            if len(shap_values.shape) == 1:
-                shap_values = shap_values.reshape(1, -1)
-            return shap_values, base_value, global_importance
+        else:
+            global_importance = np.abs(shap_values[0])
+        
+        if len(shap_values.shape) == 1:
+            shap_values = shap_values.reshape(1, -1)
+        
+        return shap_values, base_value, global_importance
     
     # ==================== Model Analysis ====================
     
@@ -1387,7 +1381,6 @@ Continue monitoring for changes.
             fallback_insights = self._generate_fallback_insights(summary_dict)
             
             # Try Gemini API if configured
-            # Try Gemini API if configured
             try:
                 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
                 if not GEMINI_API_KEY or GEMINI_API_KEY.startswith('YOUR_'):
@@ -1396,29 +1389,21 @@ Continue monitoring for changes.
                         'insights': fallback_insights,
                         'fallback': True
                     }
-            except Exception as e:
-                logger.warning(f"Gemini API check failed: {e}")
-                return {
-                    'success': True,
-                    'insights': fallback_insights,
-                    'fallback': True,
-                    'error': str(e)
-                }
-            
-            # Prepare prompt
-            top_factors = ', '.join([
-                f"{f['name']} (SHAP: {f['shap_value']:.3f})" 
-                for f in top_features[:5]
-            ])
-            
-            model_consensus = ""
-            if all_preds:
-                pred_values = [p['prediction'] for p in all_preds.values()]
-                consensus_rate = sum(pred_values) / len(pred_values) if pred_values else 0
-                model_consensus = f"\n- Model Consensus: {consensus_rate*100:.0f}% agreement"
-                model_consensus += f"\n- Models: {', '.join(all_preds.keys())}"
-            
-            prompt = f"""You are a customer retention strategist analyzing churn risk.
+                
+                # Prepare prompt
+                top_factors = ', '.join([
+                    f"{f['name']} (SHAP: {f['shap_value']:.3f})" 
+                    for f in top_features[:5]
+                ])
+                
+                model_consensus = ""
+                if all_preds:
+                    pred_values = [p['prediction'] for p in all_preds.values()]
+                    consensus_rate = sum(pred_values) / len(pred_values) if pred_values else 0
+                    model_consensus = f"\n- Model Consensus: {consensus_rate*100:.0f}% agreement"
+                    model_consensus += f"\n- Models: {', '.join(all_preds.keys())}"
+                
+                prompt = f"""You are a customer retention strategist analyzing churn risk.
 
 **Customer Profile:**
 - Churn Probability: {churn_prob:.1%}
@@ -1436,24 +1421,33 @@ Provide comprehensive business analysis with:
 5. Priority Level (Urgent/High/Medium/Low with justification)
 
 Focus on business value and actionable recommendations."""
-            
-            model = genai.GenerativeModel('gemini-pro')
-            response = model.generate_content(prompt)
-            
-            logger.info("LLM insights generated successfully")
-            
-            return {
-                'success': True,
-                'insights': response.text,
-                'generated_at': datetime.now().isoformat(),
-                'fallback': False
-            }
-            
+                
+                model = genai.GenerativeModel('gemini-pro')
+                response = model.generate_content(prompt)
+                
+                logger.info("LLM insights generated successfully")
+                
+                return {
+                    'success': True,
+                    'insights': response.text,
+                    'generated_at': datetime.now().isoformat(),
+                    'fallback': False
+                }
+                
+            except Exception as e:
+                logger.warning(f"LLM insights failed, using fallback: {e}")
+                return {
+                    'success': True,
+                    'insights': fallback_insights,
+                    'fallback': True,
+                    'error': str(e)
+                }
+                
         except Exception as e:
-            logger.warning(f"LLM insights failed, using fallback: {e}")
+            logger.error(f"Insight generation error: {e}")
             return {
                 'success': True,
-                'insights': fallback_insights,
+                'insights': self._generate_fallback_insights(summary_dict),
                 'fallback': True,
                 'error': str(e)
             }
@@ -1744,24 +1738,62 @@ if __name__ == "__main__":
     # Initialize backend
     backend = ChurnPredictionBackend()
     
-    # Example: Train models
-    # result = backend.train_models('data/churn_dataset.csv')
-    # print(result)
-    
-    # Example: Make prediction
-    # customer = {
-    #     'tenure': 24,
-    #     'MonthlyCharges': 75.50,
-    #     'Contract': 'Month-to-month',
-    #     # ... other features
-    # }
-    # prediction = backend.predict(customer, model_name='Ensemble')
-    # print(prediction)
-    
-    # Example: Get comprehensive report
-    # report = backend.generate_comprehensive_report(customer)
-    # print(report)
-    
     # Get model status
     status = backend.get_model_status()
     print("Backend Status:", status)
+    
+    def _get_kernel_shap(
+        self, model, X_pred, X_sample
+    ) -> Tuple[np.ndarray, float, np.ndarray]:
+        """Get SHAP values for linear models using KernelExplainer."""
+        try:
+            # Use a smaller sample for kernel SHAP (it's computationally expensive)
+            sample_size = min(50, len(X_sample))
+            X_sample_small = X_sample.sample(sample_size, random_state=42) if len(X_sample) > sample_size else X_sample
+            
+            # Create explainer
+            explainer = shap.KernelExplainer(
+                model.predict_proba,
+                X_sample_small,
+                link="logit"
+            )
+            
+            # Get SHAP values
+            shap_values_raw = explainer.shap_values(X_pred)
+            
+            # Handle output format
+            if isinstance(shap_values_raw, list):
+                shap_values = shap_values_raw[1] if len(shap_values_raw) > 1 else shap_values_raw[0]
+            else:
+                shap_values = shap_values_raw
+            
+            base_value = float(explainer.expected_value[1] if isinstance(explainer.expected_value, np.ndarray) 
+                             else explainer.expected_value)
+            
+            # Global importance
+            if len(shap_values.shape) == 1:
+                shap_values = shap_values.reshape(1, -1)
+            global_importance = np.abs(shap_values[0])
+            
+            return shap_values, base_value, global_importance
+            
+        except Exception as e:
+            logger.error(f"Kernel SHAP error: {e}")
+            # Fallback to simple feature importance
+            return self._get_fallback_importance(model, X_pred)
+    
+    def _get_fallback_importance(
+        self, model, X_pred
+    ) -> Tuple[np.ndarray, float, np.ndarray]:
+        """Fallback method when SHAP fails."""
+        n_features = X_pred.shape[1]
+        shap_values = np.zeros((1, n_features))
+        base_value = 0.5
+        global_importance = np.zeros(n_features)
+        
+        # Try to get feature importances from model if available
+        if hasattr(model, 'coef_'):
+            global_importance = np.abs(model.coef_[0])
+            shap_values[0] = model.coef_[0] * X_pred.iloc[0].values
+        
+        return shap_values, base_value, global_importance
