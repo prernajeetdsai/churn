@@ -296,7 +296,7 @@ else:
         "💰 Business Impact",
         "🔍 Explainability",
         "📈 Model Comparison",
-        "🔔 Monitoring",
+        "📡 Monitoring",
         "📄 Reports"
     ])
     
@@ -321,7 +321,7 @@ else:
             st.info(f"⭐ **Recommended Model:** {best_model} (Highest F1-Score)")
         
         st.divider()
-        st.subheader("📝 Enter Customer Information")
+        st.subheader("🔍 Enter Customer Information")
         
         input_data = {}
         
@@ -351,7 +351,7 @@ else:
             
             # Categorical Features
             if categorical_cols:
-                st.markdown("### 📑 Categorical Features")
+                st.markdown("### 🔑 Categorical Features")
                 cols = st.columns(3)
                 for idx, col in enumerate(categorical_cols[:6]):
                     with cols[idx % 3]:
@@ -879,7 +879,7 @@ else:
                     
                     st.divider()
                     
-                    st.markdown("### 🎚️ Impact Levels")
+                    st.markdown("### 🎛️ Impact Levels")
                     for feat in result['shap_explanation']['top_features']:
                         impact_color = {'High': '🔴', 'Medium': '🟡', 'Low': '🟢'}
                         st.markdown(f"{impact_color.get(feat['impact'], '⚪')} **{feat['name']}**: {feat['impact']}")
@@ -905,7 +905,7 @@ else:
                 st.divider()
                 
                 # Global Feature Importance
-                st.subheader("🌍 Global Feature Importance")
+                st.subheader("🌐 Global Feature Importance")
                 st.caption("Features that matter most across ALL predictions in the training data")
                 
                 if result['shap_explanation'].get('global_importance'):
@@ -1016,7 +1016,7 @@ else:
             st.divider()
             
             # Model Analysis
-            st.subheader("📝 Why This Model is Best")
+            st.subheader("🔍 Why This Model is Best")
             model_analysis = backend.get_model_comparison_analysis()
             if model_analysis['success']:
                 st.markdown(model_analysis['analysis']['explanation'])
@@ -1082,7 +1082,7 @@ else:
             st.divider()
             
             # Threshold Analysis
-            st.subheader("🎚️ Optimized Thresholds")
+            st.subheader("🎛️ Optimized Thresholds")
             st.caption("Custom thresholds for maximum recall (catching churners)")
             
             threshold_data = []
@@ -1128,7 +1128,7 @@ else:
             st.info("📊 No models trained yet")
     
     with tab6:
-        st.header("🔔 Monitoring & Drift Detection")
+        st.header("📡 Monitoring & Drift Detection")
         
         if len(backend.predictions_history) > 0:
             # Summary Metrics
@@ -1299,7 +1299,7 @@ else:
             st.divider()
             
             st.markdown("""
-            ### 🔔 What You'll See Here:
+            ### 📡 What You'll See Here:
             
             - **📈 Prediction Statistics**: Total predictions, churn rate, trends
             - **📊 Timeline Analysis**: Visual timeline of all predictions
@@ -1319,7 +1319,7 @@ else:
             # Report Header
             st.markdown(f"""
             <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        padding: 20px; border-radius: 10px; color: white; margin-bottom: 20px;'
+                        padding: 20px; border-radius: 10px; color: white; margin-bottom: 20px;
                         box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
                 <h2 style='color: white; margin: 0 0 10px 0;'>📊 Customer Churn Analysis Report</h2>
                 <p style='color: white; margin: 5px 0; opacity: 0.95;'><strong>Generated:</strong> {result['generated_at']}</p>
@@ -1333,7 +1333,6 @@ else:
             st.subheader("📌 Executive Summary")
             
             churn_status = "HIGH RISK - IMMEDIATE ACTION REQUIRED" if result['prediction']['churn_prediction'] == 1 else "LOW RISK - CUSTOMER STABLE"
-            status_color = "danger-box" if result['prediction']['churn_prediction'] == 1 else "success-box"
             
             # Better color scheme for status boxes
             if result['prediction']['churn_prediction'] == 1:
@@ -1345,19 +1344,19 @@ else:
                 status_border = "#0dcaf0"  # Cyan
                 status_text = "#000000"  # Black text
 
-           st.markdown(f"""
-           <div style='background-color: {status_bg}; 
-                       border: 2px solid {status_border}; 
-                       border-radius: 5px; 
-                       padding: 15px; 
-                       margin: 10px 0;
-                       color: {status_text};'>
-               <h3 style='color: {status_text}; margin-top: 0;'>🎯 Prediction: {churn_status}</h3>
-               <p style='color: {status_text};'><strong>Churn Probability:</strong> {result['prediction']['churn_probability']:.1%}</p>
-               <p style='color: {status_text};'><strong>Risk Level:</strong> {result['business_impact']['risk_level']}</p>
-               <p style='color: {status_text};'><strong>Revenue at Risk:</strong> ${result['business_impact']['revenue_loss']:,.2f}</p>
-           </div>
-           """, unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style='background-color: {status_bg}; 
+                        border: 2px solid {status_border}; 
+                        border-radius: 5px; 
+                        padding: 15px; 
+                        margin: 10px 0;
+                        color: {status_text};'>
+                <h3 style='color: {status_text}; margin-top: 0;'>🎯 Prediction: {churn_status}</h3>
+                <p style='color: {status_text};'><strong>Churn Probability:</strong> {result['prediction']['churn_probability']:.1%}</p>
+                <p style='color: {status_text};'><strong>Risk Level:</strong> {result['business_impact']['risk_level']}</p>
+                <p style='color: {status_text};'><strong>Revenue at Risk:</strong> ${result['business_impact']['revenue_loss']:,.2f}</p>
+            </div>
+            """, unsafe_allow_html=True)
             
             st.divider()
             
