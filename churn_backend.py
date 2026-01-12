@@ -1422,7 +1422,7 @@ Provide comprehensive business analysis with:
 
 Focus on business value and actionable recommendations."""
                 
-                model = genai.GenerativeModel('gemini-pro')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 response = model.generate_content(prompt)
                 
                 logger.info("LLM insights generated successfully")
