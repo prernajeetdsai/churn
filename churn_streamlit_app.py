@@ -83,13 +83,13 @@ backend = st.session_state.backend
 # Sidebar
 with st.sidebar:
     st.title("🎯 Churn Prediction")
-    st.markdown("**ML Platform v2.0**")
+    st.markdown("**ML Platform**")
     st.divider()
     
     st.subheader("📊 Configuration")
     try:
         GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-        if GEMINI_API_KEY and not GEMINI_API_KEY.startswith('YOUR_'):
+        if hasattr(backend, 'gemini_configured') and backend.gemini_configured:
             st.success("✅ Gemini API Active")
         else:
             st.warning("⚠️ Gemini API Not Configured")
